@@ -21,3 +21,11 @@ const Template: StoryFn<typeof InputBox> = (args) => ({
 
 export const Default = Template.bind({})
 Default.args = {}
+
+export const Mobile = Template.bind({})
+Mobile.parameters = {
+  ...Template.parameters,
+  viewport: {
+    defaultViewport: 'mobile1'
+  }
+}
