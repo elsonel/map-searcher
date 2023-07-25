@@ -14,6 +14,7 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
+    "@googlemaps/js-api-loader": "^1.16.2",
     "@phosphor-icons/vue": "^2.1.4",
     "vue": "^3.3.4"
   },
