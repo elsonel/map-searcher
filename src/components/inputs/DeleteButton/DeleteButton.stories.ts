@@ -1,22 +1,22 @@
 import type { Meta, StoryFn } from '@storybook/vue3'
-import SubmitButton from './SubmitButton.vue'
+import DeleteButton from './DeleteButton.vue'
 import { action } from '@storybook/addon-actions'
 
 export default {
-  title: 'Basic/SubmitButton',
-  component: SubmitButton,
+  title: 'Inputs/DeleteButton',
+  component: DeleteButton,
   tags: ['autodocs'],
   args: {
     onClick: action('Clicked')
   }
-} as Meta<typeof SubmitButton>
+} as Meta<typeof DeleteButton>
 
-const Template: StoryFn<typeof SubmitButton> = (args) => ({
-  components: { SubmitButton },
+const Template: StoryFn<typeof DeleteButton> = (args) => ({
+  components: { DeleteButton },
   setup() {
     return { args }
   },
-  template: '<SubmitButton v-bind="args"/>'
+  template: '<DeleteButton v-bind="args"/>'
 })
 
 export const Default = Template.bind({})
