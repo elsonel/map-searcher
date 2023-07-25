@@ -1,7 +1,8 @@
 <template>
   <input
+    class="text-field-input"
     type="text"
-    placeholder="Search for a location..."
+    placeholder="Search a location..."
     v-model="currentValue"
     @input="handleInput"
   />
@@ -30,3 +31,21 @@ watch(
   }
 )
 </script>
+
+<style scoped>
+.text-field-input {
+  width: 100%;
+  height: 48px;
+
+  outline: none;
+  border-radius: 8px;
+  border: 2px solid lightgrey;
+  transition: 200ms;
+  font-size: 16px;
+  padding: 0px 10px;
+}
+
+.text-field-input:focus {
+  border: 2px solid #00c853;
+}
+</style>

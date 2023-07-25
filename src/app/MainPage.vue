@@ -2,74 +2,111 @@
   <div class="wrapper">
     <div class="table-wrapper">
       <div class="table-header">
-        <NavigationButton @click="onNavigateClick" />
-        <TextFieldInput />
-        <SubmitButton />
+        <NavigationButton @click="onNavigateHomeClick" />
+        <form class="table-header-form" @submit.prevent="onSearchSubmit">
+          <TextFieldInput @input="onSearchInput" />
+          <SubmitButton />
+        </form>
       </div>
     </div>
     <div class="map-wrapper" id="map"></div>
   </div>
 </template>
 
-<script lang="ts">
-import { NavigationButton, TextFieldInput, SubmitButton } from '../components'
+<script setup lang="ts">
 import { Loader } from '@googlemaps/js-api-loader'
-import { GOOGLE_MAPS_API_KEY } from './utilities/constants'
-import { ref } from 'vue'
+import { getCurrentLocation } from './api/getCurrentLocation'
+import { getMapLocation } from './api/getMapLocation'
+import { NavigationButton, TextFieldInput, SubmitButton } from '../components'
+import {
+  GOOGLE_MAPS_API_KEY,
+  DEFAULT_MAP_ZOOM,
+  DEFAULT_LAT,
+  DEFAULT_LNG
+} from './utilities/constants'
+import { ref, onBeforeMount } from 'vue'
 
+const cachedHomeLocation = ref()
 const currentMap = ref()
+const searchQuery = ref('')
 
-const loader = new Loader({
-  apiKey: GOOGLE_MAPS_API_KEY,
-  version: 'weekly'
-})
+const onNavigateHomeClick = async () => {
+  const map = currentMap.value
+  if (!map) return
 
-const mapOptions = {
-  center: { lat: -34.397, lng: 150.644 },
-  zoom: 8
+  if (cachedHomeLocation.value) {
+    map.setCenter(cachedHomeLocation.value)
+    return
+  }
+
+  try {
+    const { longitude, latitude } = await getCurrentLocation()
+    cachedHomeLocation.value = { lat: latitude, lng: longitude }
+    map.setCenter({ lat: latitude, lng: longitude })
+  } catch (error) {
+    // Should show an error toast here instead of logging
+    console.error(error)
+  }
 }
 
-loader
-  .load()
-  .then((google) => {
-    currentMap.value = new google.maps.Map(document.getElementById('map'), mapOptions)
-  })
-  .catch((e) => {
-    // do something
-  })
+const onSearchInput = (e: Event) => {
+  const value = (e.currentTarget as HTMLInputElement).value
+  searchQuery.value = value
+}
 
-const onNavigateClick = () => {
-  if (!currentMap.value) return
+const onSearchSubmit = async () => {
+  const map = currentMap.value
+  const query = searchQuery.value
+  if (!map || !query) return
 
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      (position: GeolocationPosition) => {
-        const pos = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude
-        }
+  try {
+    const { longitude, latitude, name } = await getMapLocation(searchQuery.value, map)
+    const position = { lat: latitude, lng: longitude }
 
-        currentMap.value.setCenter(pos)
-      },
-      () => {
-        // handle error
+    map.setCenter(position)
+
+    const marker = new google.maps.Marker({
+      position: position,
+      map: map,
+      label: {
+        text: name,
+        color: '#000',
+        fontSize: '16px',
+        fontWeight: 'bold'
       }
-    )
-  } else {
-    // Browser doesn't support Geolocation
+    })
+  } catch (error) {
+    // Should show an error toast here instead of logging
+    console.error(error)
   }
 }
 
-export default {
-  methods: {
-    onNavigateClick
-  },
-  components: {
-    NavigationButton,
-    TextFieldInput,
-    SubmitButton
+onBeforeMount(() => {
+  const loader = new Loader({
+    apiKey: GOOGLE_MAPS_API_KEY,
+    version: 'weekly',
+    libraries: ['places']
+  })
+
+  const mapOptions = {
+    center: { lat: DEFAULT_LAT, lng: DEFAULT_LNG },
+    zoom: DEFAULT_MAP_ZOOM,
+    mapId: 'DEMO_MAP_ID'
   }
-}
+
+  loader
+    .load()
+    .then((google) => {
+      const mapElement = document.getElementById('map')
+      if (!mapElement) return
+
+      currentMap.value = new google.maps.Map(mapElement, mapOptions)
+    })
+    .catch((error) => {
+      // Should show an error toast here instead of logging
+      console.error(error)
+    })
+})
 </script>
 
 <style scoped>
@@ -86,12 +123,22 @@ export default {
 }
 
 .table-wrapper {
-  width: 400px;
+  width: 320px;
   height: 100%;
-  background-color: blue;
 }
 
 .table-header {
+  box-sizing: border-box;
   width: 100%;
+  padding: 10px;
+
+  display: flex;
+  gap: 10px;
+}
+
+.table-header-form {
+  flex-grow: 1;
+  display: flex;
+  gap: 10px;
 }
 </style>
