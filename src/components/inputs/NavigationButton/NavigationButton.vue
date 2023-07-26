@@ -5,6 +5,7 @@
     aria-label="Navigate Home"
     :style="{ flexShrink: 0 }"
     type="button"
+    severity="help"
   />
 </template>
 

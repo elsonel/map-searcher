@@ -2,106 +2,96 @@
   <div class="wrapper">
     <Toast />
     <form class="search-row" @submit.prevent="onSearchSubmit">
-      <NavigationButton @click="onNavigateHomeClick" />
-      <TextFieldInput @input="onSearchInput" />
+      <MenuButton @click="isSidebarOpen = true" />
+      <TextFieldInput v-model="searchQuery" />
       <SearchButton />
+      <NavigationButton @click="onNavigateHomeClick" />
     </form>
-    <div class="map-wrapper" id="map"></div>
+    <div class="map" id="map"></div>
     <Sidebar v-model:visible="isSidebarOpen">
       <template #header><SidebarHeader>Search History</SidebarHeader></template>
       <div class="sidebar-content-wrapper">
-        <div class="sidebar-table-wrapper">
+        <div class="sidebar-table">
           <DataTable
-            :value="searchHistory"
+            v-model:selection="searchEntriesSelected"
+            :value="searchEntries"
+            dataKey="id"
+            tableStyle="width: 100%"
             paginator
             paginatorPosition="top"
-            :tableStyle="{ width: '100%' }"
-            :rows="10"
+            scrollable
+            scrollHeight="flex"
+            @row-dblclick="onSearchEntryFocus"
+            :rows="NUMBER_OF_ROWS"
+            :rowStyle="
+              () => {
+                return {
+                  height: `calc((100dvh - 260px) / ${NUMBER_OF_ROWS})`,
+                  cursor: 'pointer',
+                  userSelect: 'none'
+                }
+              }
+            "
           >
-            <Column field="name" header="Name">
-              <template #body="slotProps">
-                <div>slotProps.data.image</div>
-              </template>
-            </Column>
+            <Column selectionMode="multiple" headerStyle="width: 0"></Column>
+            <Column field="name" header="Name"></Column>
           </DataTable>
         </div>
-        <div class="sidebar-footer"><DeleteButton /></div>
+        <div class="sidebar-footer">
+          <DeleteButton
+            @click="deleteSelectedSearchEntries"
+            :disabled="searchEntriesSelected.length === 0"
+          />
+        </div>
       </div>
     </Sidebar>
-    <Button icon="pi pi-arrow-right" @click="isSidebarOpen = true" />
   </div>
 </template>
 
 <script setup lang="ts">
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
-
 import Sidebar from 'primevue/sidebar'
-import Button from 'primevue/button'
 import Toast from 'primevue/toast'
 import { useToast } from 'primevue/usetoast'
 
-import { Loader } from '@googlemaps/js-api-loader'
-import { getCurrentLocation } from './api/getCurrentLocation'
-import { getMapLocation } from './api/getMapLocation'
 import {
   NavigationButton,
   TextFieldInput,
   SearchButton,
   SidebarHeader,
-  DeleteButton
+  DeleteButton,
+  MenuButton
 } from '../components'
+
+import { v4 as uuidv4 } from 'uuid'
+import { Loader } from '@googlemaps/js-api-loader'
+import { getCurrentLocation } from './api/getCurrentLocation'
+import { getMapLocation } from './api/getMapLocation'
 import {
   GOOGLE_MAPS_API_KEY,
   DEFAULT_MAP_ZOOM,
   DEFAULT_LAT,
-  DEFAULT_LNG
+  DEFAULT_LNG,
+  NUMBER_OF_ROWS,
+  markerLabelStyle,
+  mockLocations
 } from './utilities/constants'
-import { isError } from './utilities/helpers'
+import { isError, addSearchEntry } from './utilities/helpers'
+import type { SearchEntry } from './utilities/types'
 import { ref, onBeforeMount } from 'vue'
 
 const toast = useToast()
 
-const searchHistory = ref([
-  {
-    name: 'abc'
-  },
-  {
-    name: 'abc'
-  },
-  {
-    name: 'abc'
-  },
-  {
-    name: 'abc'
-  },
-  {
-    name: 'abc'
-  },
-  {
-    name: 'abc'
-  },
-  {
-    name: 'abc'
-  },
-  {
-    name: 'abc'
-  },
-  {
-    name: 'abc'
-  },
-  {
-    name: 'abc'
-  },
-  {
-    name: 'abc'
-  }
-])
-const isSidebarOpen = ref(true)
-
+// Search data
+const searchEntries = ref<SearchEntry[]>([])
+const searchEntriesSelected = ref<SearchEntry[]>([])
 const cachedHomeLocation = ref()
-const currentMap = ref()
+
+// UI data
 const searchQuery = ref('')
+const isSidebarOpen = ref(false)
+const currentMap = ref()
 
 const showErrorToast = (error: unknown) => {
   toast.add({
@@ -112,6 +102,30 @@ const showErrorToast = (error: unknown) => {
   })
 }
 
+// Delete selected entries
+const deleteSelectedSearchEntries = () => {
+  // Create a Set of selected entry IDs for faster lookup
+  const selectedEntryIds = new Set(searchEntriesSelected.value.map((entry) => entry.id))
+
+  // Remove markers from selected entries
+  searchEntriesSelected.value.forEach((searchEntry) => {
+    searchEntry.marker?.setMap(null)
+    searchEntry.marker?.setVisible(false)
+    searchEntry.marker = null
+  })
+
+  // Filter the searchEntries.value array based on selectedEntryIds
+  searchEntries.value = searchEntries.value.filter((entry) => !selectedEntryIds.has(entry.id))
+}
+
+// Double click to focus on a search entry row
+const onSearchEntryFocus = (event: { data: SearchEntry }) => {
+  const map = currentMap.value
+  if (!map) return
+  map.setCenter(event.data.position)
+}
+
+// Pan map to current location
 const onNavigateHomeClick = async () => {
   const map = currentMap.value
   if (!map) return
@@ -130,11 +144,7 @@ const onNavigateHomeClick = async () => {
   }
 }
 
-const onSearchInput = (e: Event) => {
-  const value = (e.currentTarget as HTMLInputElement).value
-  searchQuery.value = value
-}
-
+// Look up location and create marker/history entry
 const onSearchSubmit = async () => {
   const map = currentMap.value
   const query = searchQuery.value
@@ -146,14 +156,19 @@ const onSearchSubmit = async () => {
 
     map.setCenter(position)
 
-    const marker = new google.maps.Marker({
-      position: position,
-      map: map,
-      label: {
-        text: name,
-        color: '#000',
-        fontSize: '16px',
-        fontWeight: 'bold'
+    searchEntries.value = addSearchEntry(searchEntries.value, position, () => {
+      return {
+        id: uuidv4(),
+        name: query,
+        position: position,
+        marker: new google.maps.Marker({
+          position: position,
+          map: map,
+          label: {
+            text: name,
+            ...markerLabelStyle
+          }
+        })
       }
     })
   } catch (error) {
@@ -161,6 +176,7 @@ const onSearchSubmit = async () => {
   }
 }
 
+// Setup Google maps API
 onBeforeMount(() => {
   const loader = new Loader({
     apiKey: GOOGLE_MAPS_API_KEY,
@@ -180,7 +196,24 @@ onBeforeMount(() => {
       const mapElement = document.getElementById('map')
       if (!mapElement) return
 
-      currentMap.value = new google.maps.Map(mapElement, mapOptions)
+      const map = new google.maps.Map(mapElement, mapOptions)
+      currentMap.value = map
+
+      // Adding mock data
+      searchEntries.value = mockLocations.map((location) => {
+        return {
+          ...location,
+          id: uuidv4(),
+          marker: new google.maps.Marker({
+            position: location.position,
+            map: map,
+            label: {
+              text: location.name,
+              ...markerLabelStyle
+            }
+          })
+        }
+      })
     })
     .catch((error) => {
       console.error(error)
@@ -209,6 +242,13 @@ onBeforeMount(() => {
   padding: 0px;
 }
 
+.p-datatable .p-datatable-tbody > tr > td {
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .p-paginator {
   background-color: var(--surface-b) !important;
   border-bottom: 1px solid var(--surface-c) !important;
@@ -223,7 +263,7 @@ onBeforeMount(() => {
   flex-direction: column;
 }
 
-.map-wrapper {
+.map {
   flex-grow: 1;
 }
 
@@ -233,12 +273,14 @@ onBeforeMount(() => {
   height: 64px;
   padding: 10px;
 
+  border-bottom: 1px solid var(--surface-d);
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
 .sidebar-content-wrapper {
+  overflow: hidden;
   width: 100%;
   height: 100%;
 
@@ -246,7 +288,7 @@ onBeforeMount(() => {
   flex-direction: column;
 }
 
-.sidebar-table-wrapper {
+.sidebar-table {
   width: 100%;
   height: 0px;
   flex-grow: 1;

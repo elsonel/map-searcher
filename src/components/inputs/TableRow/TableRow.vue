@@ -35,20 +35,12 @@ watch(
 .table-row-wrapper {
   box-sizing: border-box;
   width: 100%;
-  height: 48px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 10px;
   padding: 20px;
-  border-radius: 8px;
-  background-color: var(--surface-c);
   cursor: pointer;
-  transition: 200ms;
-}
-
-.table-row-wrapper:hover {
-  transform: scale(1.01);
 }
 
 .table-row-text {
