@@ -15,7 +15,8 @@ export default {
   args: {
     slotTemplate: 'Location Name Here',
     isInitialChecked: false,
-    onInput: action('Input changed')
+    onCheckboxClick: action('Input changed'),
+    onClick: action('Clicked')
   }
 } as Meta<TableRowArgs>
 
@@ -25,8 +26,8 @@ const Template: StoryFn<TableRowArgs> = (args) => ({
     return { args }
   },
   template: `
-    <TableRow v-bind="args">
-      <div v-html="args.slotTemplate"/>
+    <TableRow v-bind="args" @onCheckboxClick="args.onCheckboxClick">
+      <span v-html="args.slotTemplate"/>
     </TableRow>`
 })
 

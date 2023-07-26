@@ -16,6 +16,8 @@
   "dependencies": {
     "@googlemaps/js-api-loader": "^1.16.2",
     "@phosphor-icons/vue": "^2.1.4",
+    "primeicons": "^6.0.1",
+    "primevue": "^3.30.2",
     "vue": "^3.3.4"
   },
   "devDependencies": {

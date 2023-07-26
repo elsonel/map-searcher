@@ -1,10 +1,10 @@
 <template>
   <Button
-    icon="pi pi-compass"
-    rounded
-    aria-label="Navigate Home"
+    icon="pi pi-search"
+    severity="success"
+    aria-label="Search"
     :style="{ flexShrink: 0 }"
-    type="button"
+    type="submit"
   />
 </template>
 

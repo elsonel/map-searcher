@@ -1,34 +1,116 @@
 <template>
   <div class="wrapper">
-    <div class="table-wrapper">
-      <div class="table-header">
-        <NavigationButton @click="onNavigateHomeClick" />
-        <form class="table-header-form" @submit.prevent="onSearchSubmit">
-          <TextFieldInput @input="onSearchInput" />
-          <SubmitButton />
-        </form>
-      </div>
-    </div>
+    <Toast />
+    <form class="search-row" @submit.prevent="onSearchSubmit">
+      <NavigationButton @click="onNavigateHomeClick" />
+      <TextFieldInput @input="onSearchInput" />
+      <SearchButton />
+    </form>
     <div class="map-wrapper" id="map"></div>
+    <Sidebar v-model:visible="isSidebarOpen">
+      <template #header><SidebarHeader>Search History</SidebarHeader></template>
+      <div class="sidebar-content-wrapper">
+        <div class="sidebar-table-wrapper">
+          <DataTable
+            :value="searchHistory"
+            paginator
+            paginatorPosition="top"
+            :tableStyle="{ width: '100%' }"
+            :rows="10"
+          >
+            <Column field="name" header="Name">
+              <template #body="slotProps">
+                <div>slotProps.data.image</div>
+              </template>
+            </Column>
+          </DataTable>
+        </div>
+        <div class="sidebar-footer"><DeleteButton /></div>
+      </div>
+    </Sidebar>
+    <Button icon="pi pi-arrow-right" @click="isSidebarOpen = true" />
   </div>
 </template>
 
 <script setup lang="ts">
+import DataTable from 'primevue/datatable'
+import Column from 'primevue/column'
+
+import Sidebar from 'primevue/sidebar'
+import Button from 'primevue/button'
+import Toast from 'primevue/toast'
+import { useToast } from 'primevue/usetoast'
+
 import { Loader } from '@googlemaps/js-api-loader'
 import { getCurrentLocation } from './api/getCurrentLocation'
 import { getMapLocation } from './api/getMapLocation'
-import { NavigationButton, TextFieldInput, SubmitButton } from '../components'
+import {
+  NavigationButton,
+  TextFieldInput,
+  SearchButton,
+  SidebarHeader,
+  DeleteButton
+} from '../components'
 import {
   GOOGLE_MAPS_API_KEY,
   DEFAULT_MAP_ZOOM,
   DEFAULT_LAT,
   DEFAULT_LNG
 } from './utilities/constants'
+import { isError } from './utilities/helpers'
 import { ref, onBeforeMount } from 'vue'
+
+const toast = useToast()
+
+const searchHistory = ref([
+  {
+    name: 'abc'
+  },
+  {
+    name: 'abc'
+  },
+  {
+    name: 'abc'
+  },
+  {
+    name: 'abc'
+  },
+  {
+    name: 'abc'
+  },
+  {
+    name: 'abc'
+  },
+  {
+    name: 'abc'
+  },
+  {
+    name: 'abc'
+  },
+  {
+    name: 'abc'
+  },
+  {
+    name: 'abc'
+  },
+  {
+    name: 'abc'
+  }
+])
+const isSidebarOpen = ref(true)
 
 const cachedHomeLocation = ref()
 const currentMap = ref()
 const searchQuery = ref('')
+
+const showErrorToast = (error: unknown) => {
+  toast.add({
+    severity: 'error',
+    summary: 'Error Encountered',
+    detail: isError(error) ? error.message : 'Unknown error occured',
+    life: 3000
+  })
+}
 
 const onNavigateHomeClick = async () => {
   const map = currentMap.value
@@ -44,8 +126,7 @@ const onNavigateHomeClick = async () => {
     cachedHomeLocation.value = { lat: latitude, lng: longitude }
     map.setCenter({ lat: latitude, lng: longitude })
   } catch (error) {
-    // Should show an error toast here instead of logging
-    console.error(error)
+    showErrorToast(error)
   }
 }
 
@@ -76,8 +157,7 @@ const onSearchSubmit = async () => {
       }
     })
   } catch (error) {
-    // Should show an error toast here instead of logging
-    console.error(error)
+    showErrorToast(error)
   }
 }
 
@@ -103,42 +183,78 @@ onBeforeMount(() => {
       currentMap.value = new google.maps.Map(mapElement, mapOptions)
     })
     .catch((error) => {
-      // Should show an error toast here instead of logging
       console.error(error)
     })
 })
 </script>
 
-<style scoped>
+<style>
+.p-sidebar-header {
+  padding: 0px !important;
+  padding-right: 10px !important;
+  background-color: var(--primary-color);
+}
+
+.p-sidebar-close {
+  flex-shrink: 0;
+  color: var(--primary-color-text) !important;
+  background-color: transparent !important;
+}
+
+.p-sidebar-header .p-sidebar-header-content {
+  width: 100%;
+}
+
+.p-sidebar .p-sidebar-header + .p-sidebar-content {
+  padding: 0px;
+}
+
+.p-paginator {
+  background-color: var(--surface-b) !important;
+  border-bottom: 1px solid var(--surface-c) !important;
+}
+
 .wrapper {
   width: 100%;
   height: 100dvh;
+  overflow: hidden;
+
   display: flex;
+  flex-direction: column;
 }
 
 .map-wrapper {
   flex-grow: 1;
-  height: 100%;
-  background-color: red;
 }
 
-.table-wrapper {
-  width: 320px;
-  height: 100%;
-}
-
-.table-header {
+.search-row {
   box-sizing: border-box;
   width: 100%;
+  height: 64px;
   padding: 10px;
 
   display: flex;
+  align-items: center;
   gap: 10px;
 }
 
-.table-header-form {
-  flex-grow: 1;
+.sidebar-content-wrapper {
+  width: 100%;
+  height: 100%;
+
   display: flex;
-  gap: 10px;
+  flex-direction: column;
+}
+
+.sidebar-table-wrapper {
+  width: 100%;
+  height: 0px;
+  flex-grow: 1;
+}
+
+.sidebar-footer {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 10px;
 }
 </style>

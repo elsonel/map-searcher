@@ -7,5 +7,3 @@
 <script setup lang="ts">
 import MainPage from './app/MainPage.vue'
 </script>
-
-<style scoped></style>

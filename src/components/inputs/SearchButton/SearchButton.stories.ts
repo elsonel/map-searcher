@@ -1,22 +1,22 @@
 import type { Meta, StoryFn } from '@storybook/vue3'
-import SubmitButton from './SubmitButton.vue'
+import SearchButton from './SearchButton.vue'
 import { action } from '@storybook/addon-actions'
 
 export default {
-  title: 'Inputs/SubmitButton',
-  component: SubmitButton,
+  title: 'Inputs/SearchButton',
+  component: SearchButton,
   tags: ['autodocs'],
   args: {
     onClick: action('Clicked')
   }
-} as Meta<typeof SubmitButton>
+} as Meta<typeof SearchButton>
 
-const Template: StoryFn<typeof SubmitButton> = (args) => ({
-  components: { SubmitButton },
+const Template: StoryFn<typeof SearchButton> = (args) => ({
+  components: { SearchButton },
   setup() {
     return { args }
   },
-  template: '<SubmitButton v-bind="args"/>'
+  template: '<SearchButton v-bind="args"/>'
 })
 
 export const Default = Template.bind({})

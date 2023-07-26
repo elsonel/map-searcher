@@ -22,11 +22,6 @@ const Template: StoryFn<typeof TextFieldInput> = (args) => ({
 export const Default = Template.bind({})
 Default.args = {}
 
-export const WithInitialValue = Template.bind({})
-WithInitialValue.args = {
-  initialValue: 'Hello'
-}
-
 export const Mobile = Template.bind({})
 Mobile.parameters = {
   ...Template.parameters,

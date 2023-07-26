@@ -1,12 +1,18 @@
 <template>
-  <div>
-    <p><slot></slot></p>
-    <CheckboxInput :isInitialChecked="props.isInitialChecked" />
+  <div class="table-row-wrapper">
+    <h4 class="table-row-text"><slot></slot></h4>
+    <Checkbox
+      v-model="isChecked"
+      :binary="true"
+      @input="(isChecked) => $emit('onCheckboxClick', isChecked)"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import CheckboxInput from '../CheckboxInput/CheckboxInput.vue'
+import Checkbox from 'primevue/checkbox'
+
+import { ref, watch } from 'vue'
 
 const props = defineProps({
   isInitialChecked: {
@@ -14,4 +20,46 @@ const props = defineProps({
     default: false
   }
 })
+
+const isChecked = ref(props.isInitialChecked)
+
+watch(
+  () => props.isInitialChecked,
+  (newValue) => {
+    isChecked.value = newValue
+  }
+)
 </script>
+
+<style scoped>
+.table-row-wrapper {
+  box-sizing: border-box;
+  width: 100%;
+  height: 48px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 20px;
+  border-radius: 8px;
+  background-color: var(--surface-c);
+  cursor: pointer;
+  transition: 200ms;
+}
+
+.table-row-wrapper:hover {
+  transform: scale(1.01);
+}
+
+.table-row-text {
+  width: 0;
+  flex-grow: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: normal;
+  font-family: var(--font-family);
+  color: var(--text-color);
+  user-select: none;
+}
+</style>
