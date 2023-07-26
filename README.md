@@ -37,3 +37,7 @@ To view and test individual components on Storybook, run the following command:
 ```bash
 npm run storybook dev -p 6007
 ```
+
+## Prototype
+
+A working prototype can be accessed at https://map-searcher.netlify.app/
