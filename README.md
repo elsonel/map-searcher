@@ -32,7 +32,7 @@ npm run dev
 
 ## Testing Components with Storybook
 
-To test individual components on Storybook, run the following command:
+To view and test individual components on Storybook, run the following command:
 
 ```bash
 npm run storybook dev -p 6007
