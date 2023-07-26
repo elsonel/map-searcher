@@ -1,6 +1,6 @@
 import type { Location } from './types'
 
-export const GOOGLE_MAPS_API_KEY = 'AIzaSyB3KXV9bRie4AYiPCudK8jhmqx0PZi4ZkQ'
+export const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string
 export const DEFAULT_MAP_ZOOM = 12
 export const DEFAULT_LAT = 40.6892
 export const DEFAULT_LNG = -73.9654
