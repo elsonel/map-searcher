@@ -1,6 +1,6 @@
 <template>
   <div class="wrapper">
-    <Toast />
+    <Toast position="bottom-left" />
     <form class="search-row" @submit.prevent="onSearchSubmit">
       <MenuButton @click="isSidebarOpen = true" />
       <TextFieldInput v-model="searchQuery" />
@@ -76,9 +76,10 @@ import {
   markerLabelStyle,
   mockLocations
 } from './utilities/constants'
-import { isError, addSearchEntry } from './utilities/helpers'
+import { isError, addSearchEntry, getFormattedTimeByOffset } from './utilities/helpers'
 import type { SearchEntry } from './utilities/types'
 import { ref, onBeforeMount } from 'vue'
+import { getLocationTimezone } from './api/getLocationTimezone'
 
 const toast = useToast()
 
@@ -140,6 +141,23 @@ const onNavigateHomeClick = async () => {
   }
 }
 
+// Create a popup with the location's current timezone and local time
+const showTimezonePopup = async (placeId: string, placeName: string, map: google.maps.Map) => {
+  try {
+    const { utcOffsetMinutes } = await getLocationTimezone(placeId, map)
+    const formattedTime = getFormattedTimeByOffset(utcOffsetMinutes)
+
+    toast.add({
+      severity: 'info',
+      summary: placeName,
+      detail: `The current time here is ${formattedTime}`,
+      life: 5000
+    })
+  } catch (error) {
+    showErrorToast(error)
+  }
+}
+
 // Look up location and create marker and search history entry
 const onSearchSubmit = async () => {
   const map = currentMap.value
@@ -147,11 +165,13 @@ const onSearchSubmit = async () => {
   if (!map || !query) return
 
   try {
-    const { longitude, latitude, name } = await getMapLocation(searchQuery.value, map)
+    const { longitude, latitude, name, placeId } = await getMapLocation(query, map)
     const position = { lat: latitude, lng: longitude }
 
+    // center map
     map.setCenter(position)
 
+    // add search entry
     searchEntries.value = addSearchEntry(searchEntries.value, position, () => {
       return {
         id: uuidv4(),
@@ -167,6 +187,9 @@ const onSearchSubmit = async () => {
         })
       }
     })
+
+    // create timezone popup
+    await showTimezonePopup(placeId, name, map)
   } catch (error) {
     showErrorToast(error)
   }

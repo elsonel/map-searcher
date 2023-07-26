@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^1.16.2",
+    "moment-timezone": "^0.5.43",
     "primeicons": "^6.0.1",
     "primevue": "^3.30.2",
     "uuid": "^9.0.0",

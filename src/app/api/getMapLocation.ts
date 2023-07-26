@@ -2,6 +2,7 @@ const API_ERROR_MESSAGE = 'Error fetching location data'
 const LOCATION_ERROR_MESSAGE = 'Location not found'
 
 type Response = {
+  placeId: string
   name: string
   address: string
   latitude: number
@@ -26,7 +27,7 @@ export async function getMapLocation(query: string, map: google.maps.Map): Promi
   return new Promise((resolve, reject) => {
     const request = {
       query: query,
-      fields: ['name', 'formatted_address', 'geometry']
+      fields: ['name', 'formatted_address', 'geometry', 'place_id']
     }
 
     const service = new google.maps.places.PlacesService(map)
@@ -41,13 +42,18 @@ export async function getMapLocation(query: string, map: google.maps.Map): Promi
           const geometry = location.geometry?.location
           if (geometry) {
             resolve({
+              placeId: location.place_id || '',
               name: location.name || '',
               address: location.formatted_address || '',
               latitude: geometry.lat(),
               longitude: geometry.lng()
             })
-          } else reject(new Error(LOCATION_ERROR_MESSAGE))
-        } else reject(new Error(API_ERROR_MESSAGE))
+          } else {
+            reject(new Error(LOCATION_ERROR_MESSAGE))
+          }
+        } else {
+          reject(new Error(API_ERROR_MESSAGE))
+        }
       }
     )
   })

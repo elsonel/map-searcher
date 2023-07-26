@@ -1,3 +1,5 @@
+const UNSUPPORTED_ERROR_MESSAGE = 'Geolocation is not supported.'
+
 /**
  * Retrieves the current geolocation coordinates (latitude and longitude) of
  * the user's device.
@@ -10,7 +12,7 @@
 export async function getCurrentLocation(): Promise<{ latitude: number; longitude: number }> {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
-      reject(new Error('Geolocation is not supported by this browser.'))
+      reject(new Error(UNSUPPORTED_ERROR_MESSAGE))
     }
 
     navigator.geolocation.getCurrentPosition(
