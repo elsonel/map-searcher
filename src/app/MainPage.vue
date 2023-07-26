@@ -113,6 +113,9 @@ const deleteSelectedSearchEntries = () => {
 
   // Remove search entries from the table list
   searchEntries.value = searchEntries.value.filter((entry) => !selectedEntryIds.has(entry.id))
+
+  // Reset searchEntriesSelected.value
+  searchEntriesSelected.value = []
 }
 
 // Double click on an entry row to pan to it in the map
@@ -148,7 +151,7 @@ const showTimezonePopup = async (placeId: string, placeName: string, map: google
     const formattedTime = getFormattedTimeByOffset(utcOffsetMinutes)
 
     toast.add({
-      severity: 'info',
+      severity: 'success',
       summary: placeName,
       detail: `The current time here is ${formattedTime}`,
       life: 5000
