@@ -14,11 +14,11 @@ export const markerLabelStyle = {
 
 export const mockLocations: Location[] = [
   {
-    name: 'Central Park asfasfsafaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    name: 'Central Park',
     position: { lat: 40.7829, lng: -73.9654 }
   },
   {
-    name: 'Statue of Liberty',
+    name: 'The Statue of Liberty in New York 10004',
     position: { lat: 40.6892, lng: -74.0445 }
   },
   {
