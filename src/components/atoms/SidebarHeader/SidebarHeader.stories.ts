@@ -11,6 +11,9 @@ export default {
   tags: ['autodocs'],
   args: {
     slotTemplate: 'Sidebar Header Text'
+  },
+  parameters: {
+    backgrounds: { default: 'dark' }
   }
 } as Meta<SidebarHeaderArgs>
 

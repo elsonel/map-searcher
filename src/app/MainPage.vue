@@ -82,16 +82,14 @@ import { ref, onBeforeMount } from 'vue'
 
 const toast = useToast()
 
-// Search data
 const searchEntries = ref<SearchEntry[]>([])
 const searchEntriesSelected = ref<SearchEntry[]>([])
-const cachedHomeLocation = ref()
+const cachedHomeLocation = ref<{ lat: number; lng: number }>()
+const searchQuery = ref<string>('')
+const isSidebarOpen = ref<boolean>(false)
+const currentMap = ref<google.maps.Map>()
 
-// UI data
-const searchQuery = ref('')
-const isSidebarOpen = ref(false)
-const currentMap = ref()
-
+// Create a toast popup with the passed error message
 const showErrorToast = (error: unknown) => {
   toast.add({
     severity: 'error',
@@ -103,28 +101,27 @@ const showErrorToast = (error: unknown) => {
 
 // Delete selected entries
 const deleteSelectedSearchEntries = () => {
-  // Create a Set of selected entry IDs for faster lookup
   const selectedEntryIds = new Set(searchEntriesSelected.value.map((entry) => entry.id))
 
-  // Remove markers from selected entries
+  // Remove markers from the map
   searchEntriesSelected.value.forEach((searchEntry) => {
     searchEntry.marker?.setMap(null)
     searchEntry.marker?.setVisible(false)
     searchEntry.marker = null
   })
 
-  // Filter the searchEntries.value array based on selectedEntryIds
+  // Remove search entries from the table list
   searchEntries.value = searchEntries.value.filter((entry) => !selectedEntryIds.has(entry.id))
 }
 
-// Double click to focus on a search entry row
+// Double click on an entry row to pan to it in the map
 const onSearchEntryFocus = (event: { data: SearchEntry }) => {
   const map = currentMap.value
   if (!map) return
   map.setCenter(event.data.position)
 }
 
-// Pan map to current location
+// Pan map to current geo location
 const onNavigateHomeClick = async () => {
   const map = currentMap.value
   if (!map) return
@@ -143,7 +140,7 @@ const onNavigateHomeClick = async () => {
   }
 }
 
-// Look up location and create marker/history entry
+// Look up location and create marker and search history entry
 const onSearchSubmit = async () => {
   const map = currentMap.value
   const query = searchQuery.value
@@ -215,19 +212,21 @@ onBeforeMount(() => {
       })
     })
     .catch((error) => {
-      console.error(error)
+      showErrorToast(error)
     })
 })
 </script>
 
 <style>
 .p-sidebar-header {
+  /* Remove header padding */
   padding: 0px !important;
   padding-right: 10px !important;
   background-color: var(--primary-color);
 }
 
 .p-sidebar-close {
+  /* Change sidebar close button colors */
   flex-shrink: 0;
   color: var(--primary-color-text) !important;
   background-color: transparent !important;
@@ -238,10 +237,12 @@ onBeforeMount(() => {
 }
 
 .p-sidebar-header + .p-sidebar-content {
+  /* Remove sidebar content padding */
   padding: 0px !important;
 }
 
 .p-datatable .p-datatable-tbody > tr > td {
+  /* Handling for when table cell text overflows */
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;

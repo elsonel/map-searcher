@@ -5,5 +5,5 @@
 </template>
 
 <script setup lang="ts">
-import MainPage from './app/MainPage.vue'
+  import MainPage from './app/MainPage.vue'
 </script>
