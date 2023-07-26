@@ -11,14 +11,19 @@
     <Sidebar v-model:visible="isSidebarOpen">
       <template #header><SidebarHeader>Search History</SidebarHeader></template>
       <div class="sidebar-content-wrapper">
+        <div class="sidebar-footer">
+          <DeleteButton
+            @click="deleteSelectedSearchEntries"
+            :disabled="searchEntriesSelected.length === 0"
+          />
+        </div>
         <div class="sidebar-table">
           <DataTable
             v-model:selection="searchEntriesSelected"
             :value="searchEntries"
             dataKey="id"
-            tableStyle="width: 100%"
+            tableStyle="width: 100%; table-layout: fixed;"
             paginator
-            paginatorPosition="top"
             scrollable
             scrollHeight="flex"
             @row-dblclick="onSearchEntryFocus"
@@ -33,15 +38,9 @@
               }
             "
           >
-            <Column selectionMode="multiple" headerStyle="width: 0"></Column>
+            <Column selectionMode="multiple" headerStyle="width: 40px;"></Column>
             <Column field="name" header="Name"></Column>
           </DataTable>
-        </div>
-        <div class="sidebar-footer">
-          <DeleteButton
-            @click="deleteSelectedSearchEntries"
-            :disabled="searchEntriesSelected.length === 0"
-          />
         </div>
       </div>
     </Sidebar>
@@ -238,20 +237,14 @@ onBeforeMount(() => {
   width: 100%;
 }
 
-.p-sidebar .p-sidebar-header + .p-sidebar-content {
-  padding: 0px;
+.p-sidebar-header + .p-sidebar-content {
+  padding: 0px !important;
 }
 
 .p-datatable .p-datatable-tbody > tr > td {
-  width: 100%;
-  white-space: nowrap;
   overflow: hidden;
+  white-space: nowrap;
   text-overflow: ellipsis;
-}
-
-.p-paginator {
-  background-color: var(--surface-b) !important;
-  border-bottom: 1px solid var(--surface-c) !important;
 }
 
 .wrapper {
