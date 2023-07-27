@@ -1,7 +1,7 @@
 
-# Map Application - Vue.js
+# Map Searching Application - Vue.js
 
-This is a Map application built in Vue.js that allows users to search and record locations using the Google Maps API.
+This is a application built in Vue.js that allows users to search and record locations using the Google Maps API.
 
 ## Technologies Used
 
